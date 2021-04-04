@@ -1,0 +1,8 @@
+{
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/2a546d6d-d470-4e77-87f4-c69ebe2701c2/resourceGroups/appsvc_linux_centralus_basic/providers/Microsoft.Web/sites/KjipestNodeServer",
+    "appService.deploySubpath": "."
+}

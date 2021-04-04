@@ -87,7 +87,7 @@ app.get("/lonlat/:lon&:lat", (req, res) => {
   });
 });
 
-var __dirname = "../app";
+var __dirname = "./app";
 app.use(express.static(path.join(__dirname, 'build')));
 /* GET React App */
 app.get('/', function (req, res) {
