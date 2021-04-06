@@ -26,37 +26,50 @@ class App extends Component {
       locData: {},
       hasPos: false,
       lat: "",
-      lon: ""
+      lon: "",
+      width: window.innerWidth,
+      mobileWidth: 1000 
     };
   }
   listRef = React.createRef();
 
   async componentDidMount() {
+    window.addEventListener("resize", this.handleResize);
     // const response = await axios.get("http://84.214.69.73:8888/");
     // const response = await axios.get("https://kjipest.no/sorted");
     const response = await axios.get("http://kjipestnodeserver.azurewebsites.net/sorted");
     const data = await response.data;
     const dataWithId = data.map((currentItem, index) => {currentItem.index = index; return(currentItem)})
     this.setState({ data: dataWithId, gotData: true});
-    var main = document.getElementById("main");
-    main.style.height = window.innerHeight - 160 + "px";
-    var list = document.getElementById("list");
-    list.style.width = window.innerWidth - 300 + "px";
-    var head = document.getElementById("categories");
-    head.style.width = window.innerWidth - 300 + "px";
-    if (navigator.geolocation) {
-      async function getPosData(position){
-        // const locresponse = await axios.get("http://84.214.69.73:8888/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
-        // const locresponse = await axios.get("https://kjipest.no/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
-        const locresponse = await axios.get("http://kjipestnodeserver.azurewebsites.net/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
-        const locData = await locresponse.data;
-        let objWithId = dataWithId.find(o => o.location === locData.location);
-        this.setState({ locData: locData, 
-                        currentLoc: locData.location, currentIndex: objWithId.index, currentScore: locData.kjipestScore});
-        this.setState({lat: position.coords.latitude, lon: position.coords.longitude, hasPos: true});
-        };
-      await navigator.geolocation.getCurrentPosition(getPosData.bind(this));
+    const { width } = this.state;
+    const isMobile = width <= this.state.mobileWidth;
+
+    if (isMobile){}
+    else{
+      var main = document.getElementById("main");
+      main.style.height = window.innerHeight - 160 + "px";
+      var list = document.getElementById("list");
+      list.style.width = window.innerWidth - 300 + "px";
+      var head = document.getElementById("categories");
+      head.style.width = window.innerWidth - 300 + "px";
     }
+      if (navigator.geolocation) {
+        async function getPosData(position){
+          // const locresponse = await axios.get("http://84.214.69.73:8888/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
+          // const locresponse = await axios.get("https://kjipest.no/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
+          const locresponse = await axios.get("http://kjipestnodeserver.azurewebsites.net/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
+          const locData = await locresponse.data;
+          let objWithId = dataWithId.find(o => o.location === locData.location);
+          this.setState({ locData: locData, 
+                          currentLoc: locData.location, currentIndex: objWithId.index, currentScore: locData.kjipestScore});
+          this.setState({lat: position.coords.latitude, lon: position.coords.longitude, hasPos: true});
+          };
+        await navigator.geolocation.getCurrentPosition(getPosData.bind(this));
+      }
+    
+  }
+  async componentWillUnmount() {
+    window.addEventListener("resize", this.handleResize);
   }
 
   Row = ({ index, style }) => {
@@ -94,7 +107,7 @@ class App extends Component {
                 className="List"
                 height={height}
                 itemCount={this.state.data.length}
-                itemSize={80}
+                itemSize={70}
                 width={width}
                 ref={this.listRef}
                 itemData={this.state.flipList}
@@ -220,7 +233,7 @@ class App extends Component {
               <h3>Rangering</h3>
             </div>
             <div className="head" id="cloc">
-              <h3>Sted</h3>
+              <h3 >Sted</h3>
             </div>
             <div className="head" id="cscore">
               <h3 onClick={() => {
@@ -274,28 +287,117 @@ class App extends Component {
       </div>
     );
   }
+  renderMobilePage(){
+    const searchTerm = this.state.searchingFor;
+    let data = searchTerm 
+      ? this.state.data.filter(item =>
+          item.location.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : []
+    return (
+      <div>
+        <div>
+          <nav>
+            <div className="nav" id="search">
+              {/* <input type="search" name="search" placeholder="søk" value="" /> */}
+              <Autocomplete
+                items={data}
+                value={this.state.searchingFor}
+                
+                renderItem={this.renderItem}
+                renderMenu={this.renderMenu}
+                
+                getItemValue={ item => item.location }
+                onChange={(e, value)=> this.setState({searchingFor: value})}
+                onSelect={this.onSelect}
+                inputProps={{ placeholder: 'søk' }}
+              />
+            </div>
+            <div className="nav" id="navlist">
+              <h2>Liste</h2>
+            </div>
+            <div className="nav">
+              <h2>Deg</h2>
+            </div>
+            <div className="nav">
+              <h2>Kart</h2>
+            </div>
+            <div className="nav">
+              <h2>Info</h2>
+            </div>
+          </nav>
+        </div>
 
-  useEffect() {
-    function handleResize() {
-      var main = document.getElementById("main");
-      main.style.height = window.innerHeight - 160 + "px";
-      var list = document.getElementById("list");
-      list.style.width = window.innerWidth - 300 + "px";
-      var head = document.getElementById("categories");
-      head.style.width = window.innerWidth - 300 + "px";
-      window.addEventListener("resize", handleResize);
-    }
-    return (_) => {
-      window.removeEventListener("resize", handleResize);
-    };
+        <div className="subheader">
+          <div id="categories">
+            <div className="head" id="crank" >
+              <h3>Rangering</h3>
+            </div>
+            <div className="head" id="cloc" >
+              <h3>Sted</h3>
+            </div>
+            <div className="head" id="cscore" >
+              <h3 onClick={() => {
+                                  if (this.state.flipList){
+                                    this.setState({ orderText: "Kjipest – Minst kjipt ↓" ,
+                                                    flipList: false});
+                                    this.listRef.current.scrollToItem(0, "start");
+                                  } else {
+                                    this.setState({ orderText: "Kjipest – Minst kjipt ↑" ,
+                                                    flipList: true});
+                                    this.listRef.current.scrollToItem(0, "start");
+                                  }}}>
+      {this.state.orderText}</h3>
+            </div>
+            <div className="head" id="cicon">
+              <h3>Værtyper</h3>
+            </div>
+          </div>
+        </div>
+        <div id="main">
+          <div id="list" style={{width:"100%"}}>{this.KjipestList()}</div>
+        </div>
+        <script type="text/javascript" src="./script.js" />
+      </div>
+    );
   }
 
-  render() {
-    if (this.state.gotData) {
-      return <div>{this.renderPage()}</div>;
-    } else {
-      return <div></div>;
+
+  handleResize = (e) => {
+    var main = document.getElementById("main");
+    var list = document.getElementById("list");
+    var head = document.getElementById("categories");
+    var crank = document.getElementById("crank");
+    var cloc = document.getElementById("cloc");
+    var cscore = document.getElementById("cscore");
+    var cicon = document.getElementById("cicon");
+    main.style.height = window.innerHeight - 160 + "px";
+    list.style.width = window.innerWidth - 300 + "px";
+    head.style.width = window.innerWidth - 300 + "px";
+    if (window.innerWidth <= this.state.mobileWidth){
+      list.style.width = "100%";
+      head.style.width = "100%";
     }
+    this.setState({ width: window.innerWidth });
+   };
+
+  render() {
+    const { width } = this.state;
+    const isMobile = width <= this.state.mobileWidth;
+    console.log(width)
+    if (isMobile){
+      if (this.state.gotData) {}
+      else {}
+      return <div>{this.renderMobilePage()}</div>
+    } else{
+      if (this.state.gotData) {
+        return <div>{this.renderPage()}</div>;
+      }
+      else {
+        return <div></div>;
+      }
+    }
+    
   }
 }
 
