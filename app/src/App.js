@@ -28,7 +28,7 @@ class App extends Component {
       lat: "",
       lon: "",
       width: window.innerWidth,
-      mobileWidth: 1000 
+      mobileWidth: 1000
     };
   }
   listRef = React.createRef();
@@ -43,29 +43,30 @@ class App extends Component {
     this.setState({ data: dataWithId, gotData: true});
     const { width } = this.state;
     const isMobile = width <= this.state.mobileWidth;
-
-    if (isMobile){}
-    else{
-      var main = document.getElementById("main");
-      main.style.height = window.innerHeight - 160 + "px";
-      var list = document.getElementById("list");
-      list.style.width = window.innerWidth - 300 + "px";
-      var head = document.getElementById("categories");
-      head.style.width = window.innerWidth - 300 + "px";
+    var main = document.getElementById("main");
+    main.style.height = window.innerHeight - 160 + "px";
+    var list = document.getElementById("list");
+    list.style.width = window.innerWidth - 300 + "px";
+    var head = document.getElementById("categories");
+    head.style.width = window.innerWidth - 300 + "px";
+    if (window.innerWidth <= this.state.mobileWidth){
+      list.style.width = "100%";
+      head.style.width = "100%";
+      this.setState({ data: dataWithId, gotData: true});
     }
-      if (navigator.geolocation) {
-        async function getPosData(position){
-          // const locresponse = await axios.get("http://84.214.69.73:8888/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
-          // const locresponse = await axios.get("https://kjipest.no/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
-          const locresponse = await axios.get("http://kjipestnodeserver.azurewebsites.net/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
-          const locData = await locresponse.data;
-          let objWithId = dataWithId.find(o => o.location === locData.location);
-          this.setState({ locData: locData, 
-                          currentLoc: locData.location, currentIndex: objWithId.index, currentScore: locData.kjipestScore});
-          this.setState({lat: position.coords.latitude, lon: position.coords.longitude, hasPos: true});
-          };
-        await navigator.geolocation.getCurrentPosition(getPosData.bind(this));
-      }
+    if (navigator.geolocation) {
+      async function getPosData(position){
+        // const locresponse = await axios.get("http://84.214.69.73:8888/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
+        // const locresponse = await axios.get("https://kjipest.no/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
+        const locresponse = await axios.get("http://kjipestnodeserver.azurewebsites.net/lonlat/" + position.coords.longitude + "&" + position.coords.latitude);
+        const locData = await locresponse.data;
+        let objWithId = dataWithId.find(o => o.location === locData.location);
+        this.setState({ locData: locData, 
+                        currentLoc: locData.location, currentIndex: objWithId.index, currentScore: locData.kjipestScore});
+        this.setState({lat: position.coords.latitude, lon: position.coords.longitude, hasPos: true});
+        };
+      await navigator.geolocation.getCurrentPosition(getPosData.bind(this));
+    }
     
   }
   async componentWillUnmount() {
@@ -81,7 +82,7 @@ class App extends Component {
         index = 0;
       }}
     return (
-    <div id="listelement" style={style}>
+    <div className="listelement" style={style}>
       <div className="elementelement" id="rank">
         {index+1}
       </div>
@@ -97,17 +98,17 @@ class App extends Component {
     </div>
   )};
 
-  KjipestList() {
+  KjipestList(rowHeight) {
     return (
       <div style={{ display: "flex" }}>
-        <div style={{ flex: "1 1 auto", height: "100vh" }}>
+        <div style={{ flex: "1 1 auto", height: "100vh"}}>
           <AutoSizer >
             {({ height, width }) => (
               <FixedSizeList
                 className="List"
                 height={height}
                 itemCount={this.state.data.length}
-                itemSize={70}
+                itemSize={rowHeight}
                 width={width}
                 ref={this.listRef}
                 itemData={this.state.flipList}
@@ -160,14 +161,14 @@ class App extends Component {
     return (
       <List
         rowHeight={this.cellHeightCache.rowHeight}
-        height={207}
+        // height={300}
         rowCount={items.length}
         rowRenderer={rowRenderer}
         width={autocompleteStyle.minWidth || 0}
         style={{
           //...customStyles,
-          height: 'auto',
-          maxHeight: '207px'
+          // height: '100%',
+          // maxHeight: '400px'
         }}
       />
     )
@@ -260,7 +261,7 @@ class App extends Component {
         </div>
 
         <div id="main">
-          <div id="list">{this.KjipestList()}</div>
+          <div id="list">{this.KjipestList(60)}</div>
           <div className="sidebar" >
             <div className="localinfo">
               <div id="localscore">
@@ -298,7 +299,7 @@ class App extends Component {
       <div>
         <div>
           <nav>
-            <div className="nav" id="search">
+            <div className="nav" className= "navsearch" id="search">
               {/* <input type="search" name="search" placeholder="søk" value="" /> */}
               <Autocomplete
                 items={data}
@@ -355,7 +356,7 @@ class App extends Component {
           </div>
         </div>
         <div id="main">
-          <div id="list" style={{width:"100%"}}>{this.KjipestList()}</div>
+          <div id="list" style={{width:"100%"}}>{this.KjipestList(30)}</div>
         </div>
         <script type="text/javascript" src="./script.js" />
       </div>
